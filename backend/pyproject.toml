@@ -1,14 +1,15 @@
 [project]
 name = "blackbox"
-version = "0.0.1"
+version = "0.1.0"
 description = "Blackbox for Agents: records AI-agent runs and pinpoints the Point of No Return"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
-  "fastapi",
+  "fastapi>=0.157.0",
   "uvicorn[standard]",
-  "pydantic>=2",
+  "pydantic>=2.14.1",
   "pydantic-settings",
-  "sqlalchemy",
+  "sqlalchemy[asyncio]",
+  "greenlet>=3.1",
   "alembic",
   "psycopg[binary]",
   "redis",
@@ -16,6 +17,7 @@ dependencies = [
   "jsonschema",
   "pyyaml",
   "httpx",
+  "aiosqlite",
 ]
 
 [project.optional-dependencies]
