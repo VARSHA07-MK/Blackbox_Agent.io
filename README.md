@@ -19,4 +19,4 @@ Requires Python 3.12. Frontend (`frontend/`) and infrastructure (`deploy/`) are 
 
 ## Status
 
-Repository skeleton only. Engine, ingest, and API are not implemented.
+Skeleton with a health endpoint and a placeholder frontend. Engine, ingest, and the investigation API are not implemented.

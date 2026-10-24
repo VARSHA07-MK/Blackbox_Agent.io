@@ -1,0 +1,64 @@
+# Blackbox failure taxonomy, version 1.0 (docs/05 §6).
+# Renaming or splitting codes requires a new major version and a migration note.
+taxonomy_version: "1.0"
+categories:
+  - code: BB-CON
+    name: Contract Violation
+    origin: Agent action
+    definition: Tool call breaks the tool's declared contract (bad type, missing field, unknown tool).
+    typical_evidence: Schema error on arguments
+  - code: BB-GRD
+    name: Grounding Break
+    origin: Agent reasoning
+    definition: Agent states or uses information not supported by prior observations.
+    typical_evidence: Value absent from all earlier results
+  - code: BB-MIS
+    name: Misread Result
+    origin: Agent reasoning
+    definition: Tool output was available but interpreted wrongly, or an error was ignored.
+    typical_evidence: Result says error, next step proceeds
+  - code: BB-POL
+    name: Policy Breach
+    origin: Agent action
+    definition: Action violates a stated policy or required approval.
+    typical_evidence: Policy check violation
+  - code: BB-DRF
+    name: Goal Drift
+    origin: Agent planning
+    definition: Plan or actions diverge from the user's goal or constraints.
+    typical_evidence: Action unrelated to goal
+  - code: BB-PLN
+    name: Plan Deviation
+    origin: Agent planning
+    definition: Skips required steps or adds unplanned actions relative to its own plan.
+    typical_evidence: Plan step missing
+  - code: BB-AMB
+    name: Ambiguity Stall
+    origin: Inputs
+    definition: Required information was missing or unclear and the agent neither asked nor handled it.
+    typical_evidence: Missing slot, no clarification
+  - code: BB-CAP
+    name: Capability Gap
+    origin: Environment
+    definition: No available tool or skill can satisfy the request.
+    typical_evidence: No matching tool
+  - code: BB-ENV
+    name: Environment Fault
+    origin: Environment
+    definition: Tool endpoint, network, or data source failed or returned malformed data.
+    typical_evidence: Timeouts, 5xx, shape errors
+  - code: BB-SAF
+    name: Safety Block
+    origin: Controls
+    definition: A guardrail or permission control stopped the action.
+    typical_evidence: Access denied, filter trigger
+  - code: BB-HND
+    name: Handoff Corruption
+    origin: Multi-agent
+    definition: Context passed between agents lost, altered, or invented information.
+    typical_evidence: Handoff payload mismatch
+  - code: BB-LOP
+    name: Loop or Stall
+    origin: Agent control
+    definition: Repeated near-identical actions without progress.
+    typical_evidence: Similarity over N steps
