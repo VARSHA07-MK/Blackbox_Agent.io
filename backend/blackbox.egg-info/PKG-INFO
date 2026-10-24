@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: blackbox
+Version: 0.0.1
+Summary: Blackbox for Agents: records AI-agent runs and pinpoints the Point of No Return
+Requires-Python: >=3.12
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: pydantic>=2
+Requires-Dist: pydantic-settings
+Requires-Dist: sqlalchemy
+Requires-Dist: alembic
+Requires-Dist: psycopg[binary]
+Requires-Dist: redis
+Requires-Dist: rq
+Requires-Dist: jsonschema
+Requires-Dist: pyyaml
+Requires-Dist: httpx
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: hypothesis; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: mypy; extra == "dev"

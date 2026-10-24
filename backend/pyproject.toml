@@ -1,0 +1,42 @@
+[project]
+name = "blackbox"
+version = "0.0.1"
+description = "Blackbox for Agents: records AI-agent runs and pinpoints the Point of No Return"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "pydantic>=2",
+  "pydantic-settings",
+  "sqlalchemy",
+  "alembic",
+  "psycopg[binary]",
+  "redis",
+  "rq",
+  "jsonschema",
+  "pyyaml",
+  "httpx",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "hypothesis", "ruff", "mypy"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["blackbox*"]
+
+[tool.pytest.ini_options]
+testpaths = ["../tests"]
+markers = ["req(id): link a test to a requirement id, e.g. FR-023"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
