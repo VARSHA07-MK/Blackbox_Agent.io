@@ -3,4 +3,4 @@
 set -e
 cd "$(dirname "$0")"
 source .venv/bin/activate
-uvicorn blackbox.api.app:app --host 127.0.0.1 --port 8000 --reload --app-dir backend
+uvicorn blackbox.api.app:app --host localhost --port 8000 --reload --app-dir backend
