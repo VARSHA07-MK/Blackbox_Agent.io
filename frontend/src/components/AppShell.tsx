@@ -28,9 +28,9 @@ export function AppShell() {
           </span>
         </div>
         <div className="workspace-switch">
-          <div className="workspace-avatar">A</div>
+          <div className="workspace-avatar">B</div>
           <div>
-            <strong>Accurith Workspace</strong>
+            <strong>My Workspace</strong>
             <small>Prototype</small>
           </div>
           <span className="chevron">⌄</span>
@@ -56,6 +56,12 @@ export function AppShell() {
           >
             <Icon name="adoption" /> Adoption
           </NavLink>
+          <NavLink
+            to="/connectors"
+            className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+          >
+            <Icon name="connect" /> Connectors
+          </NavLink>
           <button className="nav-item">
             <Icon name="rulebook" /> Rulebooks
           </button>
@@ -77,9 +83,9 @@ export function AppShell() {
           <Icon name="settings" /> Settings
         </button>
         <div className="profile">
-          <div className="profile-avatar">AC</div>
+          <div className="profile-avatar">ME</div>
           <div>
-            <strong>Accurith</strong>
+            <strong>Owner</strong>
             <small>Administrator</small>
           </div>
           <Icon name="more" />

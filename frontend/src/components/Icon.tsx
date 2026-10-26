@@ -26,6 +26,9 @@ const symbols: Record<string, string> = {
   copy: "⎘",
   tick: "✔",
   cross: "✕",
+  connect: "⚡",
+  key: "⚿",
+  eye: "◉",
 };
 
 export function Icon({ name }: { name: string }) {

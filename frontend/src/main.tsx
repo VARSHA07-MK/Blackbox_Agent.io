@@ -7,6 +7,7 @@ import { InvestigationsListPage } from "./pages/InvestigationsListPage";
 import { InvestigationDetailPage } from "./pages/InvestigationDetailPage";
 import { SimulationPage } from "./pages/SimulationPage";
 import { AdoptionPage } from "./pages/AdoptionPage";
+import { ConnectorsPage } from "./pages/ConnectorsPage";
 import "./styles.css";
 
 const queryClient = new QueryClient({
@@ -24,6 +25,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="investigations/:id" element={<InvestigationDetailPage />} />
             <Route path="simulation" element={<SimulationPage />} />
             <Route path="adoption" element={<AdoptionPage />} />
+            <Route path="connectors" element={<ConnectorsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

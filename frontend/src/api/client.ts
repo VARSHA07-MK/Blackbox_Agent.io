@@ -208,3 +208,46 @@ export async function getAdoptionDashboard(): Promise<unknown> {
   if (!response.ok) throw new Error("Failed to load adoption dashboard");
   return response.json();
 }
+
+// ── API Key management ────────────────────────────────────────────────────────
+
+export type ApiKeyRecord = {
+  id: string;
+  name: string;
+  key_prefix: string;
+  app_id: string | null;
+  active: boolean;
+  created_at: string;
+  last_used_at: string | null;
+  use_count: number;
+};
+
+export async function listApiKeys(): Promise<{ keys: ApiKeyRecord[] }> {
+  const response = await fetch("/v1/api-keys");
+  if (!response.ok) throw new Error("Failed to load API keys");
+  return response.json() as Promise<{ keys: ApiKeyRecord[] }>;
+}
+
+export async function createApiKey(
+  name: string,
+  appId?: string,
+): Promise<{ key_id: string; key: string; key_prefix: string; name: string; created_at: string }> {
+  const response = await fetch("/v1/api-keys", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, app_id: appId ?? null }),
+  });
+  if (!response.ok) throw new Error("Failed to create API key");
+  return response.json() as Promise<{
+    key_id: string;
+    key: string;
+    key_prefix: string;
+    name: string;
+    created_at: string;
+  }>;
+}
+
+export async function revokeApiKey(keyId: string): Promise<void> {
+  const response = await fetch(`/v1/api-keys/${keyId}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Failed to revoke API key");
+}

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, ValidationError
 from sqlalchemy import desc, select
 
@@ -20,7 +21,7 @@ from blackbox.adoption.coordinator import (
 from blackbox.adoption.models import EnrollRequest, TriggerConfig, ValidateSampleRequest
 from blackbox.adoption.registry import get_demo_agent
 from blackbox.db.base import Base, SessionLocal, engine
-from blackbox.db.models import EnrolledAgent, Investigation, SimulationRun
+from blackbox.db.models import ApiKey, EnrolledAgent, Investigation, SimulationRun
 from blackbox.engine.analyzer import analyze_record
 from blackbox.normalizer.models import FlightRecord
 from blackbox.simulation.runner import DEFAULT_AGENT_COUNTS, run_simulation
@@ -553,3 +554,171 @@ async def adoption_dashboard() -> dict[str, Any]:
         "registry_note": "SIMULATED DEMO REGISTRY — synthetic agents only",
         "disclaimer": "Connecting real internal agents requires an approved registry and explicit owner enrollment.",
     }
+
+
+# ── API key management ────────────────────────────────────────────────────────
+
+class CreateApiKeyRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = ""
+    app_id: str | None = None
+
+
+async def _resolve_api_key(authorization: str | None) -> ApiKey:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, detail={"message": "Missing or invalid Authorization header"})
+    raw_key = authorization.removeprefix("Bearer ").strip()
+    key_hash = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+    async with SessionLocal() as session:
+        rows = await session.execute(
+            select(ApiKey).where(ApiKey.key_hash == key_hash, ApiKey.active == True)  # noqa: E712
+        )
+        api_key = rows.scalar_one_or_none()
+    if api_key is None:
+        raise HTTPException(401, detail={"message": "Invalid or revoked API key"})
+    return api_key
+
+
+@app.post("/v1/api-keys")
+async def create_api_key(request: CreateApiKeyRequest) -> dict[str, Any]:
+    raw_key = "bb_live_" + secrets.token_urlsafe(32)
+    key_hash = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+    key_id = "key_" + secrets.token_urlsafe(8)
+    key_prefix = raw_key[:12]
+    now = datetime.now(timezone.utc)
+
+    async with SessionLocal() as session:
+        ak = ApiKey(
+            id=key_id,
+            name=request.name,
+            key_prefix=key_prefix,
+            key_hash=key_hash,
+            app_id=request.app_id,
+            active=True,
+            created_at=now,
+        )
+        session.add(ak)
+        await session.commit()
+
+    return {
+        "key_id": key_id,
+        "key": raw_key,
+        "key_prefix": key_prefix,
+        "name": request.name,
+        "created_at": now.isoformat(),
+    }
+
+
+@app.get("/v1/api-keys")
+async def list_api_keys() -> dict[str, Any]:
+    async with SessionLocal() as session:
+        rows = await session.execute(select(ApiKey).order_by(desc(ApiKey.created_at)))
+        keys = rows.scalars().all()
+    return {
+        "keys": [
+            {
+                "id": k.id,
+                "name": k.name,
+                "key_prefix": k.key_prefix,
+                "app_id": k.app_id,
+                "active": k.active,
+                "created_at": k.created_at.isoformat(),
+                "last_used_at": k.last_used_at.isoformat() if k.last_used_at else None,
+                "use_count": k.use_count,
+            }
+            for k in keys
+        ]
+    }
+
+
+@app.delete("/v1/api-keys/{key_id}")
+async def revoke_api_key(key_id: str) -> dict[str, Any]:
+    async with SessionLocal() as session:
+        ak = await session.get(ApiKey, key_id)
+        if ak is None:
+            raise HTTPException(404, detail={"message": f"API key {key_id} not found"})
+        ak.active = False
+        await session.commit()
+    return {"revoked": True}
+
+
+# ── Ingest endpoint (API-key authenticated) ───────────────────────────────────
+
+@app.post("/v1/ingest")
+async def ingest_trace(
+    request: AnalyzeRequest,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    api_key = await _resolve_api_key(authorization)
+
+    # Update usage stats
+    async with SessionLocal() as session:
+        ak = await session.get(ApiKey, api_key.id)
+        if ak:
+            ak.last_used_at = datetime.now(timezone.utc)
+            ak.use_count = (ak.use_count or 0) + 1
+            await session.commit()
+
+    # Run the same analysis logic as /v1/analyze
+    try:
+        if request.source_format == "generic-jsonl":
+            if not isinstance(request.trace, str):
+                raise HTTPException(
+                    422,
+                    detail={"path": "trace", "message": "Expected JSONL text."},
+                )
+            record = normalize_jsonl(
+                request.trace,
+                task=request.task,
+                record_id=request.record_id,
+            )
+            raw_payload = request.trace.encode("utf-8")
+        elif request.source_format == "flight-record-1":
+            if not isinstance(request.trace, dict):
+                raise HTTPException(
+                    422,
+                    detail={"path": "trace", "message": "Expected a Flight Record object."},
+                )
+            record = FlightRecord.model_validate(request.trace)
+            raw_payload = json.dumps(
+                request.trace,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=False,
+            ).encode("utf-8")
+        else:
+            raise HTTPException(
+                422,
+                detail={"path": "source_format", "message": "Use generic-jsonl or flight-record-1."},
+            )
+    except TraceFormatError as exc:
+        raise HTTPException(422, detail={"path": exc.path, "message": exc.message}) from exc
+    except ValidationError as exc:
+        error = exc.errors(include_url=False)[0]
+        path = ".".join(str(part) for part in error["loc"])
+        raise HTTPException(
+            422,
+            detail={"path": f"trace.{path}" if path else "trace", "message": error["msg"]},
+        ) from exc
+
+    trace_hash = hashlib.sha256(raw_payload).hexdigest()
+    result = analyze_record(record, trace_hash=trace_hash)
+    investigation_id = str(uuid4())
+
+    async with SessionLocal() as session:
+        inv = Investigation(
+            id=investigation_id,
+            record_id=record.record_id,
+            task_goal=record.task.goal,
+            step_count=result["summary"]["step_count"],
+            violation_count=result["summary"]["violation_count"],
+            pnr_step=result["summary"]["pnr_step"],
+            taxonomy_code=result["summary"]["taxonomy_code"],
+            basis=result["summary"]["basis"],
+            trace_hash=result["summary"]["trace_hash"],
+            result_json={**result, "ingested_via_api_key": api_key.id},
+        )
+        session.add(inv)
+        await session.commit()
+
+    return {"investigation_id": investigation_id, **result}
