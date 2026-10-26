@@ -1,4 +1,4 @@
-PY ?= python3.12
+PY ?= python3.14
 VENV := .venv
 
 .PHONY: venv test lint migrate seed up

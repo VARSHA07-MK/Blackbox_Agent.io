@@ -125,7 +125,7 @@ sequenceDiagram
 
 | Layer | Choice | Reason |
 |---|---|---|
-| Backend | Python 3.12, FastAPI, Pydantic v2 | Rapid build, strong validation, async |
+| Backend | Python 3.14, FastAPI, Pydantic v2 | Current stable Python with strong validation and async support |
 | Rule expressions | CEL (via `cel-python`) or a restricted expression evaluator | Safe, non-Turing-complete expressions |
 | Schema validation | `jsonschema` | Tool schema argument validation |
 | Queue/worker | Redis + RQ or Celery (Dramatiq acceptable) | Simple async jobs |
@@ -249,4 +249,5 @@ flowchart LR
 
 | Version | Date | Change |
 |---|---|---|
+| 1.1.0 | 2026-10-24 | Refresh backend runtime to Python 3.14 |
 | 1.0.0 | 2026-10-24 | Initial version |

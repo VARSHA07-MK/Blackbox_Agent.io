@@ -4,7 +4,7 @@ Use this to start coding on day one. Versions and commands should be confirmed a
 
 ## 1. Prerequisites
 
-- Python 3.12, Node 22, Docker + Docker Compose, Git, `make`.
+- Python 3.14, Node.js 24 LTS, Docker + Docker Compose, Git, `make`.
 - An LLM provider API key (for the real judge; tests use the fake provider).
 
 ## 2. Repository structure
@@ -341,4 +341,5 @@ Typed, tested (≥ 85% for engine), documented docstrings, golden tests where ou
 
 | Version | Date | Change |
 |---|---|---|
+| 1.1.0 | 2026-10-24 | Refresh prerequisites to Python 3.14 and Node.js 24 LTS |
 | 1.0.0 | 2026-10-24 | Initial version |
