@@ -106,16 +106,16 @@ class _Runner:
         agent_id: str,
         role: str,
         tool_name: str,
-        order_id: str | None = None,
+        ev_oid: str | None = None,
         scenario_id: str | None = None,
         **kwargs: Any,
     ) -> tuple[dict[str, Any], str | None]:
-        self._emit(agent_id, role, "tool_call", {"tool": tool_name, "arguments": kwargs}, order_id, scenario_id)
+        self._emit(agent_id, role, "tool_call", {"tool": tool_name, "arguments": kwargs}, ev_oid, scenario_id)
         result, error = call_tool(self.state, agent_id, role, tool_name, **kwargs)
         self._emit(
             agent_id, role, "tool_result",
             {"tool": tool_name, "output": result, "error": error},
-            order_id, scenario_id,
+            ev_oid, scenario_id,
         )
         return result, error
 
