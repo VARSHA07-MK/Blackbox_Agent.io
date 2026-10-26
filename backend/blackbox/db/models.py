@@ -27,3 +27,46 @@ class Investigation(Base):
     basis: Mapped[str] = mapped_column(String)
     trace_hash: Mapped[str] = mapped_column(String)
     result_json: Mapped[dict[str, Any]] = mapped_column(JSON)
+
+
+class SimulationRun(Base):
+    __tablename__ = "simulation_runs"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+    seed: Mapped[int] = mapped_column(Integer)
+    agent_counts: Mapped[dict[str, Any]] = mapped_column(JSON)
+    scenario_mix: Mapped[list[Any]] = mapped_column(JSON)
+    num_orders: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String)
+    started_at: Mapped[str] = mapped_column(String)
+    completed_at: Mapped[str | None] = mapped_column(String, nullable=True)
+    metrics: Mapped[dict[str, Any]] = mapped_column(JSON)
+    events_json: Mapped[list[Any]] = mapped_column(JSON)
+
+
+class EnrolledAgent(Base):
+    __tablename__ = "enrolled_agents"
+
+    agent_id: Mapped[str] = mapped_column(String, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+    )
+    agent_name: Mapped[str] = mapped_column(String)
+    application: Mapped[str] = mapped_column(String)
+    owner_email: Mapped[str] = mapped_column(String)
+    environment: Mapped[str] = mapped_column(String)
+    trace_format: Mapped[str] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, default="setup_needed")
+    rulebook: Mapped[str] = mapped_column(String, default="retail-core")
+    triggers: Mapped[list[Any]] = mapped_column(JSON, default=list)
+    last_analyzed_at: Mapped[str | None] = mapped_column(String, nullable=True)
+    analysis_count: Mapped[int] = mapped_column(Integer, default=0)
+    violation_count: Mapped[int] = mapped_column(Integer, default=0)
+    pnr_count: Mapped[int] = mapped_column(Integer, default=0)
+    enrolled_at: Mapped[str | None] = mapped_column(String, nullable=True)
+    notes: Mapped[str] = mapped_column(String, default="")

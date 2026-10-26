@@ -44,11 +44,20 @@ export function AppShell() {
             <Icon name="investigation" /> Investigations
             {count > 0 && <span className="nav-count">{count}</span>}
           </NavLink>
+          <NavLink
+            to="/simulation"
+            className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+          >
+            <Icon name="simulation" /> Simulation
+          </NavLink>
+          <NavLink
+            to="/adoption"
+            className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+          >
+            <Icon name="adoption" /> Adoption
+          </NavLink>
           <button className="nav-item">
             <Icon name="rulebook" /> Rulebooks
-          </button>
-          <button className="nav-item">
-            <Icon name="overview" /> Overview
           </button>
         </nav>
         <div className="side-spacer" />

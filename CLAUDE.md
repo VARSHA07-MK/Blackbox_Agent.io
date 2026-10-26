@@ -17,7 +17,7 @@ Standing context for AI-assisted development. Keep this file short and current.
 
 ## Stack
 
-Python 3.12, FastAPI, Pydantic v2, SQLAlchemy + Alembic, PostgreSQL, Redis + worker, React + TypeScript + Vite. LLM access only through `JudgeProvider` (fake provider in tests).
+Python 3.14, FastAPI, Pydantic v2, SQLAlchemy + Alembic, PostgreSQL, Redis + worker, React 19, TypeScript, and Vite 8. LLM access only through `JudgeProvider` (fake provider in tests).
 
 ## Layout
 

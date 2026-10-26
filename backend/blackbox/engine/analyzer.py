@@ -11,6 +11,19 @@ from blackbox.normalizer.models import FlightRecord, Step
 
 DESTRUCTIVE_TOOLS = {"cancel_order", "delete_order"}
 
+_MARKETPLACE_RULES_LOADED = False
+
+
+def _run_marketplace_rules(record: FlightRecord) -> list[dict[str, Any]]:
+    """Lazily import and run marketplace rules to keep the engine import-clean."""
+    global _MARKETPLACE_RULES_LOADED  # noqa: PLW0603
+    try:
+        from blackbox.simulation.rules import run_marketplace_rules  # noqa: PLC0415
+        _MARKETPLACE_RULES_LOADED = True
+        return run_marketplace_rules(record)
+    except ImportError:
+        return []
+
 
 def _canonical_hash(previous: str, fields: dict[str, Any]) -> str:
     canonical = json.dumps(fields, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -89,6 +102,12 @@ def analyze_record(record: FlightRecord, *, trace_hash: str | None = None) -> di
                 }
             )
 
+    # Extend with marketplace rules when this is a food-delivery trace
+    domain = record.task.user_context.get("domain") if record.task.user_context else None
+    if domain == "food_delivery":
+        mkt_findings = _run_marketplace_rules(record)
+        findings.extend(mkt_findings)
+
     findings.sort(key=lambda item: (item["step_idx"], item["check_id"]))
     ledger: list[dict[str, Any]] = []
     previous_hash = "0" * 64
@@ -129,5 +148,9 @@ def analyze_record(record: FlightRecord, *, trace_hash: str | None = None) -> di
         },
         "candidates": candidates,
         "ledger": ledger,
-        "checks": ["POL-CONFIRM-DELETE", "POL-NO-CANCEL-SHIPPED"],
+        "checks": ["POL-CONFIRM-DELETE", "POL-NO-CANCEL-SHIPPED",
+                   "MKT-NO-DOUBLE-CHARGE", "MKT-REFUND-EXCEEDS-CHARGE", "MKT-NO-CANCEL-DELIVERED",
+                   "MKT-REFUND-REQUIRES-EVIDENCE", "MKT-NO-ACCEPT-BEFORE-TOOL-RESULT",
+                   "MKT-NO-UNAVAILABLE-COURIER", "MKT-ROLE-PERMISSION-VIOLATION",
+                   "MKT-AGENT-LOOP", "MKT-PROCEED-ON-FAILED-TOOL", "MKT-INCOMPLETE-HANDOFF"],
     }

@@ -14,6 +14,18 @@ const symbols: Record<string, string> = {
   more: "···",
   plus: "+",
   clock: "◷",
+  simulation: "⬡",
+  adoption: "⬟",
+  play: "▶",
+  pause: "⏸",
+  stop: "⏹",
+  agent: "◈",
+  order: "◎",
+  violation: "⚠",
+  filter: "⧖",
+  copy: "⎘",
+  tick: "✔",
+  cross: "✕",
 };
 
 export function Icon({ name }: { name: string }) {
